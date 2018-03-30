@@ -14,7 +14,7 @@
 #define ROT 0.3
 #define TEX_W 64
 #define TEX_H 64
-#define TEXTURES 3
+#define TEXTURES 4
 
 typedef struct	s_img
 {
@@ -33,6 +33,13 @@ typedef struct	s_mlx
 	void	*w_p;
 }				t_mlx;
 
+typedef struct s_line
+{
+  int height;
+  int start;
+  int end;
+  double x;
+}               t_line;
 typedef struct s_cast
 {
     double cameraX;
@@ -42,10 +49,8 @@ typedef struct s_cast
     int mapY;
     double sideDistX;
     double sideDistY;
-    double perpWallDist;
     int stepX;
     int stepY;
-    int hit;
     int side;
     double deltaDistX;
     double deltaDistY;
@@ -83,5 +88,6 @@ int   show_error(char *reason);
 void verLine(t_img *img, int x, int start, int end, int color);
 int *read_map(int fd, int res, t_glob *g);
 void init_textures(t_glob *g);
+void get_spawn_position(t_glob *g);
 
 #endif

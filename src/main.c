@@ -3,15 +3,17 @@
 
 void get_steps(t_cast *c, int x, t_glob *g)
 {
-  c->cameraX = 2 * x / (double)WIDTH - 1;
-  c->rayDirX = g->dirX + g->planeX * c->cameraX;
-  c->rayDirY = g->dirY + g->planeY * c->cameraX;
-  c->mapX = (int)g->posX;
-  c->mapY = (int)g->posY;
-  c->deltaDistX = fabs(1 / c->rayDirX);
-  c->deltaDistY = fabs(1 / c->rayDirY);
-  c->stepX = (c->rayDirX < 0) ? -1 : 1;
-  c->stepY = (c->rayDirY < 0) ? -1 : 1;
+  t_cast *c;
+
+  c.cameraX = 2 * x / (double)WIDTH - 1;
+  c.rayDirX = g->dirX + g->planeX * c.cameraX;
+  c.rayDirY = g->dirY + g->planeY * c.cameraX;
+  c.mapX = (int)g->posX;
+  c.mapY = (int)g->posY;
+  c.deltaDistX = fabs(1 / c.rayDirX);
+  c.deltaDistY = fabs(1 / c.rayDirY);
+  c.stepX = (c.rayDirX < 0) ? -1 : 1;
+  c.stepY = (c.rayDirY < 0) ? -1 : 1;
   if (c->rayDirX < 0)
     c->sideDistX = (g->posX - c->mapX) * c->deltaDistX;
   else
@@ -24,7 +26,6 @@ void get_steps(t_cast *c, int x, t_glob *g)
 
 double get_distance(t_glob *g, t_cast *c)
 {
-  double perpWallDist;
   int hit;
 
   hit = 0;
@@ -46,73 +47,60 @@ double get_distance(t_glob *g, t_cast *c)
           hit = 1;
       }
       if (c->side == 0)
-        perpWallDist = (c->mapX - g->posX + (1 - c->stepX) / 2) / c->rayDirX;
+        return ((c->mapX - g->posX + (1 - c->stepX) / 2) / c->rayDirX);
       else
-        perpWallDist = (c->mapY - g->posY + (1 - c->stepY) / 2) / c->rayDirY; 
-      return (perpWallDist);
+        return ((c->mapY - g->posY + (1 - c->stepY) / 2) / c->rayDirY); 
 }
 
-void draw_segment(t_glob *g, t_cast *c, double dist, int x)
+void draw_tex_pattern(t_glob *g, int texX, t_line line, int texNum, int x)
+{
+  for(int y = line.start; y < line.end; y++)
+      {
+        int d = y * 256 - HEIGHT * 128 + line.height * 128;  
+        int texY = ((d * TEX_H) / line.height) / 256;
+
+        int color = *(int *)(g->texs[texNum].ptr + ((texX + texY * TEX_W) * 4));
+        set_pixel(g->img, x, y, color);
+      }
+}
+
+t_line init_line(double dist)
+{
+  t_line line;
+
+  line.height = (int)(HEIGHT / dist);
+  line.start = -line.height / 2 + HEIGHT / 2;
+  line.start = (line.start < 0) ? 0 : line.start;
+  line.end = line.height / 2 + HEIGHT / 2;
+  line.end = (line.end >= HEIGHT) ? HEIGHT - 1 : line.end;
+  return (line);
+}
+
+void draw_wall_segment(t_glob *g, t_cast *c, double dist, int x)
 {
   int texNum;
-  int lineHeight;
-  int drawStart;
-  int drawEnd;
-  double wallX;
-
-  lineHeight = (int)(HEIGHT / dist);
-  drawStart = -lineHeight / 2 + HEIGHT / 2;
-  drawStart = (drawStart < 0) ? 0 : drawStart;
-  drawEnd = lineHeight / 2 + HEIGHT / 2;
-  drawEnd = (drawEnd >= HEIGHT) ? HEIGHT - 1 : drawEnd;
-
-  texNum = g->arr[c->mapX + c->mapY * g->width] % TEXTURES; // change
-
-
-  if (c->side == 0)
-    wallX = g->posY + dist * c->rayDirY;
-  else
-    wallX = g->posX + dist * c->rayDirX;
-  wallX -= floor(wallX);
-  
   int texX;
+  t_line line;
 
-  texX = (int)(wallX * (double)TEX_W);
+  line = init_line(dist);
+  texNum = g->arr[c->mapX + c->mapY * g->width] % TEXTURES; // change
+    if (c->side == 1)
+     texNum = (c->stepY == 1) ? 0 : 1;
+      else
+        texNum = (c->stepX == 1) ? 2 : 3;
+      verLine(g->img, x, 0, line.start, 0x6dcfed);
+      verLine(g->img, x, line.end, HEIGHT, 0x03bf23);
+  if (c->side == 0)
+    line.x = g->posY + dist * c->rayDirY;
+  else
+    line.x = g->posX + dist * c->rayDirX;
+  line.x -= floor(line.x);
+  texX = (int)(line.x * (double)TEX_W);
   if (c->side == 0 && c->rayDirX > 0)
     texX = TEX_W - texX -1;
   if (c->side == 1 && c->rayDirY < 0)
     texX = TEX_W - texX -1;
-
- for(int y = drawStart; y<drawEnd; y++)
-      {
-        int d = y * 256 - HEIGHT * 128 + lineHeight * 128;  //256 and 128 factors to avoid floats
-        // TODO: avoid the division to speed this up
-        int texY = ((d * TEX_H) / lineHeight) / 256;
-
-        int color = *(int *)(g->texs[texNum].ptr + ((texX + texY * TEX_W) * 4));
-       // printf("%i\n", color);
-       // texture[texHeight * texY + texX];
-        //make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
-        if(c->side == 1) color = (color >> 1) & 8355711;
-          set_pixel(g->img, x, y, color);
-      }
-
-  //     if (c->side == 1)
-  //     {
-  //       if (c->stepY == 1)
-  //         verLine(g->img, x, drawStart, drawEnd, 0x3d4c3f);
-  //       else
-  //         verLine(g->img, x, drawStart, drawEnd, 0x4c4b46);
-  //     }
-  //     else
-  //     {
-  //       if (c->stepX == 1)
-  //         verLine(g->img, x, drawStart, drawEnd, 0xc62200);
-  //      else
-  //         verLine(g->img, x, drawStart, drawEnd, 0xfe9b00);
-  //     }
-  //     verLine(g->img, x, 0, drawStart, 0x6dcfed);
-  //     verLine(g->img, x, drawEnd, HEIGHT, 0x03bf23);
+  draw_tex_pattern(g, texX, line, texNum, x);
 }
 
 
@@ -126,37 +114,10 @@ void render_walls(t_glob *g)
   {
     get_steps(g->c, x, g);
     distance = get_distance(g, g->c);
-    draw_segment(g, g->c, distance, x);
+    draw_wall_segment(g, g->c, distance, x);
     x++;
   }
   mlx_put_image_to_window(g->mlx->m_p, g->mlx->w_p, g->img->image, 0, 0);
-}
-
-void get_spawn_position(t_glob *g)
-{
-  int i;
-  int j;
-
-  j = g->height;
-  while (j--)
-  {
-    i = g->width;
-    while (i--)
-    {
-      if (g->arr[i + g->width * j] == 0)
-      {
-        if (g->arr[i + g->width * j] == 0
-          && g->arr[i - 1 + g->width * j] == 0
-          && g->arr[i - 1 + g->width * (j - 1)] == 0)
-{
-          g->posX = i;
-             g->posY = j;
-            return ;
-}
-      }
-    }
-  }
-  show_error("please, create 2 x 2 free space for spawn point");
 }
 
 
@@ -181,7 +142,6 @@ int main(int argc, char **argv)
   get_spawn_position(g);
   printf("here 3\n");
   init_textures(g);
- // generate_textures(g);
   render_walls(g);
   mlx_put_image_to_window(g->mlx->m_p, g->mlx->w_p, g->img, 0, 0);
   mlx_key_hook(g->mlx->w_p, key_pressed, g);  

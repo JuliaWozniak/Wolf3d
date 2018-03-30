@@ -1,8 +1,8 @@
 #include "../wolf.h"
 
-void move(t_glob *g, int key)
+void  move(t_glob *g, int key)
 {
-  double old;
+  double  old;
 
 if (key == 126)
   {
@@ -28,10 +28,10 @@ if (key == 126)
   }
 }
 
-void rotate(t_glob *g, int key)
+void  rotate(t_glob *g, int key)
 {
-  double oldDirX;
-  double oldPlaneX;
+  double  oldDirX;
+  double  oldPlaneX;
 
   if (key == 123)
   {

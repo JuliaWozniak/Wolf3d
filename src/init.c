@@ -20,45 +20,44 @@ t_mlx	*init_mlx(void)
 	return (mlx);
 }
 
+void get_spawn_position(t_glob *g)
+{
+  int i;
+  int j;
+
+  j = g->height;
+  while (j--)
+  {
+    i = g->width;
+    while (i--)
+    {
+      if (g->arr[i + g->width * j] == 0)
+      {
+        if (g->arr[i + g->width * j] == 0
+          && g->arr[i - 1 + g->width * j] == 0
+          && g->arr[i - 1 + g->width * (j - 1)] == 0)
+{
+          g->posX = i;
+             g->posY = j;
+            return ;
+}
+      }
+    }
+  }
+  show_error("please, create 2 x 2 free space for spawn point");
+}
+
 t_glob    *init_glob(void)
 {
   t_glob  *g;
 
   g = (t_glob *)ft_memalloc(sizeof(t_glob));
   g->mlx = init_mlx();
-  g->c = (t_cast *)ft_memalloc(sizeof(t_cast));
+  // g->c = (t_cast *)ft_memalloc(sizeof(t_cast));
   g->img = create_image(g->mlx->m_p);
   g->dirX = -1; 
   g->dirY = 0;
   g->planeX = 0;
   g->planeY = 0.66;
-  //g->textures = (int *)ft_memalloc(4 * sizeof(int) * TEX_H * TEX_W);
-
   return (g);
 }
-
-void generate_textures(t_glob *g)
-{
-  for (int x = 0; x < TEX_W; x++)
-  {
-    for (int y = 0; y < TEX_H; y++)
-   {
-   // int xorcolor = (x * 256 / TEX_W) ^ (y * 256 / TEX_H);
-    //int xcolor = x * 256 / texWidth;
-   // int ycolor = y * 256 / TEX_H;
-    //int xycolor = y * 128 / TEX_H + x * 128 / TEX_W;
-    g->textures[TEX_W * y + x] = 65536 * 254 * (x != y && x != TEX_W - y);
-     //flat red texture with black cross
-    printf("%i\n", g->textures[TEX_W * y + x]);
-    //  g->textures[TEX_W * y + x + TEX_W * TEX_H] = xycolor + 256 * xycolor + 65536 * xycolor; //sloped greyscale
-    // // g->textures[TEX_W * y + x] = 256 * xycolor + 65536 * xycolor; //sloped yellow gradient
-    //  g->textures[TEX_W * y + x + 2 * TEX_W * TEX_H] = xorcolor + 256 * xorcolor + 65536 * xorcolor; //xor greyscale
-    // // g->textures[TEX_W * y + x] = 256 * xorcolor; //xor green
-    //  g->textures[TEX_W * y + x + 3 * TEX_W * TEX_H] = 65536 * 192 * (x % 16 && y % 16); //red bricks
-    // // g->textures[TEX_W * y + x] = 65536 * ycolor; //red gradient
-    //  //g->textures[TEX_W * y + x] = 128 + 256 * 128 + 65536 * 128; //flat grey texture
-    }
-  }
-}
-
-
