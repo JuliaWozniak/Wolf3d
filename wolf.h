@@ -14,12 +14,12 @@
 #define ROT 0.3
 #define TEX_W 64
 #define TEX_H 64
-#define TEXTURES 2
+#define TEXTURES 3
 
 typedef struct	s_img
 {
 	void	*image;
-	char	*ptr;
+	 char	*ptr;
 	int		bpp;
 	int		strd;
 	int		endn;
@@ -62,7 +62,7 @@ typedef struct  s_glob
   double dirX;
   double planeX;
   double planeY;
-  t_img *texs[TEXTURES];
+  t_img *texs;
   int textures[TEX_W * TEX_H];
   t_cast *c;
   int width;
