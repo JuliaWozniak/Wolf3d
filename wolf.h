@@ -15,6 +15,8 @@
 #define TEX_W 64
 #define TEX_H 64
 #define TEXTURES 4
+#define SKY 1
+#define FLOOR 0
 
 typedef struct	s_img
 {
@@ -40,6 +42,12 @@ typedef struct s_line
   int end;
   double x;
 }               t_line;
+
+typedef struct s_tex
+{
+  int   tex_num;
+  int   tex_x;
+}             t_tex;
 typedef struct s_cast
 {
     double cameraX;
@@ -85,9 +93,13 @@ void  clear_image(t_glob *g);
 void  set_pixel(t_img *img, int x, int y, int color);
 int check_array(t_glob *g, int x, int y);
 int   show_error(char *reason);
-void verLine(t_img *img, int x, int start, int end, int color);
+void verline(t_img *img, int x, int y, int line);
 int *read_map(int fd, int res, t_glob *g);
 void init_textures(t_glob *g);
 void get_spawn_position(t_glob *g);
+void  draw_tex_pattern(t_glob *g, t_line line, t_tex t, int x);
+t_line  init_line(double dist);
+void remove_rubbish(char **words, char *str);
+int   exit_wolf(void *par);
 
 #endif

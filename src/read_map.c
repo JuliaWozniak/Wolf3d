@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   read_map.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jwozniak <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2018/04/01 14:11:41 by jwozniak          #+#    #+#             */
+/*   Updated: 2018/04/01 14:11:43 by jwozniak         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../wolf.h"
 
-t_list		*remove_list(t_list *list)
+t_list	*remove_list(t_list *list)
 {
 	t_list *next;
 
@@ -12,34 +24,18 @@ t_list		*remove_list(t_list *list)
 	return (next);
 }
 
-void remove_rubbish(char **words, char *str)
+void	fill_line(int *arr, int y, t_list *list, t_glob *g)
 {
-	int i;
+	int		i;
+	char	**words;
+	int		j;
+	char	*str;
 
 	i = -1;
-	while (words[++i])
-	{
-		free(words[i]);
-		words[i] = NULL;
-	}
-	free(str);
-	str = NULL;
-	free(words);
-	words = NULL;
-}
-
-void fill_line(int *arr, int y, t_list *list, int width, int height)
-{
-	int i;
-	char **words;
-	int j;
-	char *str;
-
-	i = -1;
-	j = y * width - 1;
+	j = y * g->width - 1;
 	str = ft_strnew(list->content_size);
 	str = ft_memcpy(str, list->content, list->content_size);
-	if (ft_count_words(str, ' ') != width)
+	if (ft_count_words(str, ' ') != g->width)
 		show_error("Each line must be of equal length");
 	words = ft_strsplit(str, ' ');
 	while (words[++i])
@@ -47,28 +43,28 @@ void fill_line(int *arr, int y, t_list *list, int width, int height)
 		arr[++j] = ft_atoi(words[i]);
 		if (arr[j] < 0)
 			show_error("please, no negative numbers in the map");
-		if ((y == 0 || y == height - 1 ) && arr[j] == 0)
+		if ((y == 0 || y == g->height - 1) && arr[j] == 0)
 			show_error("please, make sure the outer walls are without gaps");
-		if ((i == 0 || i == width - 1) && arr[j] == 0)
+		if ((i == 0 || i == g->width - 1) && arr[j] == 0)
 			show_error("please, make sure the outer walls are without gaps");
 	}
 	remove_rubbish(words, str);
 }
 
-void fill_array(int *arr, int width, int height, t_list *head)
+void	fill_array(int *arr, t_glob *g, t_list *head)
 {
 	int y;
 
 	y = 0;
-	while (y < height)
+	while (y < g->height)
 	{
-		fill_line(arr, y, head, width, height);
+		fill_line(arr, y, head, g);
 		head = remove_list(head);
 		y++;
 	}
 }
 
-int *make_map(t_list *head, t_glob *g)
+int		*make_map(t_list *head, t_glob *g)
 {
 	int height;
 	int width;
@@ -83,11 +79,11 @@ int *make_map(t_list *head, t_glob *g)
 	if (width < 3 || height < 3)
 		show_error("no room for walking");
 	arr = (int *)ft_memalloc(sizeof(int) * width * height);
-	fill_array(arr, width, height, head);
+	fill_array(arr, g, head);
 	return (arr);
 }
 
-int *read_map(int fd, int res, t_glob *g)
+int		*read_map(int fd, int res, t_glob *g)
 {
 	char	*line;
 	t_list	*list;
@@ -112,6 +108,5 @@ int *read_map(int fd, int res, t_glob *g)
 	}
 	if (res == -1 || (res == 0 && list == NULL))
 		show_error("the file is empty");
-	return (make_map(start, g));	
+	return (make_map(start, g));
 }
-
